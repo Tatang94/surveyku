@@ -11,9 +11,9 @@ export class CPXService {
 
   constructor() {
     this.config = {
-      appId: process.env.CPX_APP_ID || process.env.CPX_RESEARCH_APP_ID || "default_app_id",
-      secureHash: process.env.CPX_SECURE_HASH || process.env.CPX_RESEARCH_SECURE_HASH || "default_secure_hash",
-      postbackUrl: process.env.CPX_POSTBACK_URL || `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/api/postback/cpx`,
+      appId: process.env.CPX_APP_ID || "27993",
+      secureHash: process.env.CPX_SECURE_HASH || "6uXMH7e8bqJRoqClwJA0KzvNxhIxwHm7",
+      postbackUrl: process.env.CPX_POSTBACK_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/api/postback/cpx`,
     };
   }
 
@@ -40,7 +40,6 @@ export class CPXService {
       email: userEmail || '',
       subid_1: '',
       subid_2: '',
-      main_info: 'true',
     });
 
     if (userProfile) {

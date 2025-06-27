@@ -123,6 +123,10 @@ export class MemStorage implements IStorage {
       ...insertUser,
       id,
       password: hashedPassword,
+      dateOfBirth: insertUser.dateOfBirth || null,
+      gender: insertUser.gender || null,
+      country: insertUser.country || null,
+      zipCode: insertUser.zipCode || null,
       balance: "0.00",
       totalEarnings: "0.00",
       completedSurveys: 0,
@@ -170,6 +174,7 @@ export class MemStorage implements IStorage {
     const survey: Survey = {
       ...insertSurvey,
       id,
+      isActive: insertSurvey.isActive ?? true,
       createdAt: new Date(),
     };
     this.surveys.set(id, survey);
@@ -194,6 +199,7 @@ export class MemStorage implements IStorage {
     const userSurvey: UserSurvey = {
       ...insertUserSurvey,
       id,
+      reward: insertUserSurvey.reward || null,
       startedAt: new Date(),
       completedAt: null,
     };

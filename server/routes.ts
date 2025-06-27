@@ -121,8 +121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         birthdayMonth: user.dateOfBirth?.split('-')[1],
         birthdayYear: user.dateOfBirth?.split('-')[0],
         gender: user.gender === 'male' ? '1' : user.gender === 'female' ? '2' : undefined,
-        countryCode: user.country,
-        zipCode: user.zipCode,
+        countryCode: user.country || undefined,
+        zipCode: user.zipCode || undefined,
       };
 
       const surveyUrl = cpxService.generateSurveyUrl(
@@ -212,13 +212,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Update user balance and stats
-        const newBalance = (parseFloat(user.balance) + parseFloat(reward_amount)).toFixed(2);
-        const newTotalEarnings = (parseFloat(user.totalEarnings) + parseFloat(reward_amount)).toFixed(2);
+        const newBalance = (parseFloat(user.balance || "0") + parseFloat(reward_amount)).toFixed(2);
+        const newTotalEarnings = (parseFloat(user.totalEarnings || "0") + parseFloat(reward_amount)).toFixed(2);
         
         await storage.updateUser(userId, {
           balance: newBalance,
           totalEarnings: newTotalEarnings,
-          completedSurveys: user.completedSurveys + 1,
+          completedSurveys: (user.completedSurveys || 0) + 1,
         });
 
         // Create transaction record
@@ -266,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User tidak ditemukan" });
       }
 
-      const balance = parseFloat(user.balance);
+      const balance = parseFloat(user.balance || "0");
       const withdrawAmount = parseFloat(amount);
 
       if (withdrawAmount < 50000) {
