@@ -94,7 +94,21 @@ This is a full-stack survey platform application built with React + TypeScript f
 
 ## Changelog
 - June 27, 2025. Initial setup
+- June 27, 2025. Database integration with PostgreSQL completed
+- June 27, 2025. CPX Research integration with real credentials (App ID: 27993)
+- June 27, 2025. Animated splash screen with logo implemented
+
+## Recent Changes
+✓ PostgreSQL database successfully integrated with Drizzle ORM
+✓ DatabaseStorage class replacing in-memory storage
+✓ Real CPX Research credentials configured (App ID: 27993, secure hash)
+✓ Animated splash screen with floating logo and progress bar
+✓ Indonesian language interface maintained throughout
+✓ Complete survey workflow with postback URL handling
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language in Indonesian.
+Database: PostgreSQL with Drizzle ORM
+Authentication: Session-based with bcrypt
+UI: Animated splash screen with professional logo design

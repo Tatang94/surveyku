@@ -132,3 +132,58 @@
   background-color: hsl(142, 76%, 95%);
   color: hsl(142, 76%, 30%);
 }
+
+/* Splash Screen Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0px);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.splash-logo {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.floating-particle {
+  animation: floatUp 4s ease-in-out infinite;
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.8) 100%
+  );
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 2s ease-in-out infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+}

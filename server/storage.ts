@@ -1,4 +1,6 @@
 import { users, surveys, userSurveys, transactions, type User, type InsertUser, type Survey, type InsertSurvey, type UserSurvey, type InsertUserSurvey, type Transaction, type InsertTransaction } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export interface IStorage {
@@ -35,116 +37,106 @@ export interface IStorage {
   }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private surveys: Map<number, Survey>;
-  private userSurveys: Map<number, UserSurvey>;
-  private transactions: Map<number, Transaction>;
-  private currentUserId: number;
-  private currentSurveyId: number;
-  private currentUserSurveyId: number;
-  private currentTransactionId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.surveys = new Map();
-    this.userSurveys = new Map();
-    this.transactions = new Map();
-    this.currentUserId = 1;
-    this.currentSurveyId = 1;
-    this.currentUserSurveyId = 1;
-    this.currentTransactionId = 1;
-    
     // Initialize with sample surveys
     this.initializeSampleData();
   }
 
   private async initializeSampleData() {
-    const sampleSurveys = [
-      {
-        cpxSurveyId: "CPX_001",
-        title: "Survey Kepuasan Pelanggan E-commerce",
-        description: "Berikan pendapat Anda tentang pengalaman berbelanja online dan dapatkan reward menarik",
-        reward: "3500.00",
-        duration: 15,
-        category: "Premium",
-        isActive: true,
-      },
-      {
-        cpxSurveyId: "CPX_002",
-        title: "Survey Preferensi Brand Makanan",
-        description: "Ceritakan preferensi Anda tentang brand makanan favorit",
-        reward: "2200.00",
-        duration: 8,
-        category: "Cepat",
-        isActive: true,
-      },
-      {
-        cpxSurveyId: "CPX_003",
-        title: "Survey Gaya Hidup Milenial",
-        description: "Bagikan informasi tentang gaya hidup dan kebiasaan sehari-hari Anda",
-        reward: "2800.00",
-        duration: 12,
-        category: "Demografi",
-        isActive: true,
-      },
-      {
-        cpxSurveyId: "CPX_004",
-        title: "Survey Penggunaan Aplikasi Mobile",
-        description: "Berikan feedback tentang aplikasi mobile yang sering Anda gunakan",
-        reward: "2500.00",
-        duration: 10,
-        category: "Teknologi",
-        isActive: true,
-      },
-    ];
+    try {
+      // Check if surveys already exist
+      const existingSurveys = await db.select().from(surveys).limit(1);
+      if (existingSurveys.length > 0) {
+        return; // Data already initialized
+      }
 
-    for (const surveyData of sampleSurveys) {
-      await this.createSurvey(surveyData);
+      const sampleSurveys = [
+        {
+          cpxSurveyId: "CPX_001",
+          title: "Survey Kepuasan Pelanggan E-commerce",
+          description: "Berikan pendapat Anda tentang pengalaman berbelanja online dan dapatkan reward menarik",
+          reward: "3500.00",
+          duration: 15,
+          category: "Premium",
+          isActive: true,
+        },
+        {
+          cpxSurveyId: "CPX_002",
+          title: "Survey Preferensi Brand Makanan",
+          description: "Ceritakan preferensi Anda tentang brand makanan favorit",
+          reward: "2200.00",
+          duration: 8,
+          category: "Cepat",
+          isActive: true,
+        },
+        {
+          cpxSurveyId: "CPX_003",
+          title: "Survey Gaya Hidup Milenial",
+          description: "Bagikan informasi tentang gaya hidup dan kebiasaan sehari-hari Anda",
+          reward: "2800.00",
+          duration: 12,
+          category: "Demografi",
+          isActive: true,
+        },
+        {
+          cpxSurveyId: "CPX_004",
+          title: "Survey Penggunaan Aplikasi Mobile",
+          description: "Berikan feedback tentang aplikasi mobile yang sering Anda gunakan",
+          reward: "2500.00",
+          duration: 10,
+          category: "Teknologi",
+          isActive: true,
+        },
+      ];
+
+      for (const surveyData of sampleSurveys) {
+        await this.createSurvey(surveyData);
+      }
+    } catch (error) {
+      console.log('Sample data initialization skipped:', error);
     }
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
-    const id = this.currentUserId++;
-    const user: User = {
-      ...insertUser,
-      id,
-      password: hashedPassword,
-      dateOfBirth: insertUser.dateOfBirth || null,
-      gender: insertUser.gender || null,
-      country: insertUser.country || null,
-      zipCode: insertUser.zipCode || null,
-      balance: "0.00",
-      totalEarnings: "0.00",
-      completedSurveys: 0,
-      profileCompleteness: this.calculateProfileCompleteness(insertUser),
-      isActive: true,
-      createdAt: new Date(),
-    };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...insertUser,
+        password: hashedPassword,
+        dateOfBirth: insertUser.dateOfBirth || null,
+        gender: insertUser.gender || null,
+        country: insertUser.country || null,
+        zipCode: insertUser.zipCode || null,
+        profileCompleteness: this.calculateProfileCompleteness(insertUser),
+      })
+      .returning();
     return user;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    
-    const updatedUser = { ...user, ...updates };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -162,80 +154,79 @@ export class MemStorage implements IStorage {
   }
 
   async getSurveys(): Promise<Survey[]> {
-    return Array.from(this.surveys.values()).filter(survey => survey.isActive);
+    return await db.select().from(surveys).where(eq(surveys.isActive, true));
   }
 
   async getSurvey(id: number): Promise<Survey | undefined> {
-    return this.surveys.get(id);
+    const [survey] = await db.select().from(surveys).where(eq(surveys.id, id));
+    return survey || undefined;
   }
 
   async createSurvey(insertSurvey: InsertSurvey): Promise<Survey> {
-    const id = this.currentSurveyId++;
-    const survey: Survey = {
-      ...insertSurvey,
-      id,
-      isActive: insertSurvey.isActive ?? true,
-      createdAt: new Date(),
-    };
-    this.surveys.set(id, survey);
+    const [survey] = await db
+      .insert(surveys)
+      .values({
+        ...insertSurvey,
+        isActive: insertSurvey.isActive ?? true,
+      })
+      .returning();
     return survey;
   }
 
   async updateSurvey(id: number, updates: Partial<Survey>): Promise<Survey | undefined> {
-    const survey = this.surveys.get(id);
-    if (!survey) return undefined;
-    
-    const updatedSurvey = { ...survey, ...updates };
-    this.surveys.set(id, updatedSurvey);
-    return updatedSurvey;
+    const [survey] = await db
+      .update(surveys)
+      .set(updates)
+      .where(eq(surveys.id, id))
+      .returning();
+    return survey || undefined;
   }
 
   async getUserSurveys(userId: number): Promise<UserSurvey[]> {
-    return Array.from(this.userSurveys.values()).filter(us => us.userId === userId);
+    return await db.select().from(userSurveys).where(eq(userSurveys.userId, userId));
   }
 
   async createUserSurvey(insertUserSurvey: InsertUserSurvey): Promise<UserSurvey> {
-    const id = this.currentUserSurveyId++;
-    const userSurvey: UserSurvey = {
-      ...insertUserSurvey,
-      id,
-      reward: insertUserSurvey.reward || null,
-      startedAt: new Date(),
-      completedAt: null,
-    };
-    this.userSurveys.set(id, userSurvey);
+    const [userSurvey] = await db
+      .insert(userSurveys)
+      .values({
+        ...insertUserSurvey,
+        reward: insertUserSurvey.reward || null,
+      })
+      .returning();
     return userSurvey;
   }
 
   async updateUserSurvey(id: number, updates: Partial<UserSurvey>): Promise<UserSurvey | undefined> {
-    const userSurvey = this.userSurveys.get(id);
-    if (!userSurvey) return undefined;
-    
-    const updatedUserSurvey = { ...userSurvey, ...updates };
-    this.userSurveys.set(id, updatedUserSurvey);
-    return updatedUserSurvey;
+    const [userSurvey] = await db
+      .update(userSurveys)
+      .set(updates)
+      .where(eq(userSurveys.id, id))
+      .returning();
+    return userSurvey || undefined;
   }
 
   async getUserSurveyByCpxId(userId: number, cpxSurveyId: string): Promise<UserSurvey | undefined> {
-    return Array.from(this.userSurveys.values()).find(
-      us => us.userId === userId && us.cpxSurveyId === cpxSurveyId
-    );
+    const [userSurvey] = await db
+      .select()
+      .from(userSurveys)
+      .where(eq(userSurveys.userId, userId));
+    return userSurvey || undefined;
   }
 
   async getTransactions(userId: number): Promise<Transaction[]> {
-    return Array.from(this.transactions.values())
-      .filter(t => t.userId === userId)
-      .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
+    return await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(transactions.createdAt);
   }
 
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const id = this.currentTransactionId++;
-    const transaction: Transaction = {
-      ...insertTransaction,
-      id,
-      createdAt: new Date(),
-    };
-    this.transactions.set(id, transaction);
+    const [transaction] = await db
+      .insert(transactions)
+      .values(insertTransaction)
+      .returning();
     return transaction;
   }
 
@@ -246,9 +237,9 @@ export class MemStorage implements IStorage {
     availableSurveys: number;
   }> {
     const user = await this.getUser(userId);
-    const userSurveys = await this.getUserSurveys(userId);
-    const completedSurveys = userSurveys.filter(us => us.status === 'completed').length;
-    const totalAttempts = userSurveys.length;
+    const userSurveysList = await this.getUserSurveys(userId);
+    const completedSurveys = userSurveysList.filter(us => us.status === 'completed').length;
+    const totalAttempts = userSurveysList.length;
     const availableSurveys = (await this.getSurveys()).length;
     
     return {
@@ -260,4 +251,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
