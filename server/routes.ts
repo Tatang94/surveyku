@@ -1,4 +1,6 @@
 import type { Express } from "express";
+import express from "express";
+import path from "path";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { cpxService } from "./services/cpx-service";
@@ -340,5 +342,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // Serve CyberThreat LiveMap static files
+  const cyberMapsPath = path.resolve(process.cwd(), 'cyber-attack-maps');
+  app.use('/cyber-attack-maps', express.static(cyberMapsPath));
+
+  // Route for cyber attack maps
+  app.get('/cyber-attack-maps', (req, res) => {
+    res.sendFile(path.join(cyberMapsPath, 'index.html'));
+  });
+
   return httpServer;
 }
