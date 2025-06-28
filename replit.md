@@ -117,14 +117,11 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ Dependencies installed and database tables created automatically
 ✓ Application server running on port 5000 with frontend/backend integration
 ✓ Environment variables configured for production-ready deployment
-✓ PHP version created for traditional web hosting deployment (June 28, 2025)
-✓ Complete PHP application with authentication, CPX integration, and responsive design
-✓ Apache .htaccess configuration with security headers and performance optimization
-✓ Deployment guides created for all three versions (Replit, Vercel, PHP hosting)
 ✓ PHP version simplified into single-file application in `surveyku-php/` folder (June 28, 2025)
 ✓ All-in-one PHP file with authentication, CPX integration, and responsive design
 ✓ Simplified deployment with just index.php, .htaccess, and README
 ✓ Same PostgreSQL database integration for consistency across versions
+✓ Old complex PHP version removed, replaced with streamlined version
 
 ## Database Credentials (Stable)
 PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
@@ -136,7 +133,7 @@ Database: neondb
 ## Deployment Options
 1. **Replit (Current)**: Express.js + React, running on port 5000
 2. **Vercel (Next.js)**: Complete Next.js version in `nextjs-version/` folder, ready for Vercel deployment
-3. **PHP Hosting**: Traditional PHP version in `php-version/` folder, supports Supabase and Neon PostgreSQL
+3. **PHP Hosting**: Simplified PHP version in `surveyku-php/` folder, single-file application for traditional web hosting
 
 ## CPX Research Postback Files
 Multiple postback implementations created for flexible deployment:
