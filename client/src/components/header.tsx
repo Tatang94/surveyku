@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatCurrency } from "@/lib/cpx-research";
-import { Wallet, User, LogOut } from "lucide-react";
+import { Wallet, User, LogOut, HelpCircle } from "lucide-react";
+import HelpModal from "@/components/help-modal";
 
 export default function Header() {
   const { user } = useAuth();
@@ -25,7 +26,9 @@ export default function Header() {
               <a href="#" className="text-gray-900 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
               <a href="#" className="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Survey</a>
               <a href="#" className="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Riwayat</a>
-              <a href="#" className="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Profil</a>
+              <HelpModal>
+                <button className="text-gray-500 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Bantuan</button>
+              </HelpModal>
             </nav>
           </div>
           
@@ -34,7 +37,7 @@ export default function Header() {
             <div className="balance-display flex items-center space-x-2">
               <Wallet className="h-4 w-4" />
               <span className="text-sm font-medium">Saldo:</span>
-              <span className="text-lg font-bold">{formatCurrency(user.balance)}</span>
+              <span className="text-lg font-bold">{formatCurrency(user.balance ?? "0")}</span>
             </div>
             
             {/* User Menu */}
@@ -56,6 +59,12 @@ export default function Header() {
                   <User className="mr-2 h-4 w-4" />
                   <span>Profil</span>
                 </DropdownMenuItem>
+                <HelpModal>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    <span>Bantuan</span>
+                  </DropdownMenuItem>
+                </HelpModal>
                 <DropdownMenuItem onClick={() => logout.mutate()}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Keluar</span>
