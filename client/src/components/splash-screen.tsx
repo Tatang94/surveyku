@@ -16,9 +16,9 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
           setTimeout(() => onComplete(), 500);
           return 100;
         }
-        return prev + 1.6; // Slower progress for 5 seconds
+        return prev + 1; // Slower progress for 10 seconds
       });
-    }, 80);
+    }, 100);
 
     return () => clearInterval(timer);
   }, [onComplete]);
