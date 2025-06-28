@@ -105,6 +105,20 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ Animated splash screen with floating logo and progress bar
 ✓ Indonesian language interface maintained throughout
 ✓ Complete survey workflow with postback URL handling
+✓ Migration from Replit Agent to Replit environment completed (June 28, 2025)
+✓ Next.js version created for Vercel deployment with same PostgreSQL database
+✓ Stable database credentials provided for consistent import/export
+
+## Database Credentials (Stable)
+PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
+Host: ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech
+Port: 5432
+User: neondb_owner
+Database: neondb
+
+## Deployment Options
+1. **Replit (Current)**: Express.js + React, running on port 5000
+2. **Vercel (Next.js)**: Complete Next.js version in `nextjs-version/` folder, ready for Vercel deployment
 
 ## User Preferences
 
