@@ -131,6 +131,8 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ Withdrawal period restricted to 1st-5th of each month for DANA payments
 ✓ Admin dashboard for managing withdrawal requests and user statistics
 ✓ Multi-payment method support (DANA, GoPay, OVO, Bank Transfer)
+✓ Animated splash screen added to PHP version for consistency (June 28, 2025)
+✓ All deployment versions now feature identical splash screen and UX
 
 ## Database Credentials (Stable)
 PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require

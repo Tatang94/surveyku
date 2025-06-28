@@ -346,6 +346,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 break;
+                
+            case 'mark_splash_shown':
+                $_SESSION['splash_shown'] = true;
+                exit('OK');
+                break;
         }
     }
 }
@@ -384,6 +389,7 @@ if (isset($_GET['cpx_postback']) && $_GET['cpx_postback'] === '1') {
 
 $page = $_GET['page'] ?? 'home';
 $user = getCurrentUser();
+$showSplash = !isset($_SESSION['splash_shown']) && !$user;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -435,11 +441,76 @@ $user = getCurrentUser();
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
         
+        /* Splash Screen */
+        .splash-screen { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh; 
+            background: linear-gradient(135deg, #2563eb, #7c3aed); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 9999; 
+            animation: fadeOut 0.5s ease-in-out 3s forwards; 
+        }
+        
+        .splash-logo { 
+            text-align: center; 
+            color: white; 
+            animation: logoFloat 3s ease-in-out infinite; 
+        }
+        
+        .splash-logo h1 { 
+            font-size: 4rem; 
+            font-weight: 700; 
+            margin-bottom: 1rem; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+        }
+        
+        .splash-logo p { 
+            font-size: 1.25rem; 
+            opacity: 0.9; 
+            margin-bottom: 2rem; 
+        }
+        
+        .progress-bar { 
+            width: 200px; 
+            height: 6px; 
+            background: rgba(255,255,255,0.2); 
+            border-radius: 3px; 
+            overflow: hidden; 
+            margin: 0 auto; 
+        }
+        
+        .progress-fill { 
+            height: 100%; 
+            background: white; 
+            border-radius: 3px; 
+            animation: progressLoad 3s ease-out forwards; 
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(2deg); }
+            75% { transform: translateY(-5px) rotate(-2deg); }
+        }
+        
+        @keyframes progressLoad {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header-content { flex-direction: column; gap: 1rem; }
             .hero h1 { font-size: 2rem; }
             .stats-grid { grid-template-columns: 1fr; }
+            .splash-logo h1 { font-size: 2.5rem; }
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -467,6 +538,19 @@ $user = getCurrentUser();
             </div>
         </div>
     </header>
+
+    <!-- Splash Screen -->
+    <?php if ($showSplash): ?>
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">
+            <h1>SurveyKu</h1>
+            <p>Platform Survei Terpercaya Indonesia</p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Content -->
     <main>
@@ -995,8 +1079,21 @@ $user = getCurrentUser();
     </footer>
 
     <script>
-        // Simple form validation
+        // Splash screen management
         document.addEventListener('DOMContentLoaded', function() {
+            const splashScreen = document.getElementById('splashScreen');
+            if (splashScreen) {
+                // Mark splash as shown for this session
+                setTimeout(() => {
+                    fetch('index.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'action=mark_splash_shown'
+                    });
+                }, 3000);
+            }
+
+            // Simple form validation
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 form.addEventListener('submit', function(e) {

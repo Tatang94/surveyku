@@ -35,6 +35,12 @@ Versi PHP yang disederhanakan dari platform survei SurveyKu. Semua fitur digabun
 - Statistik real-time (users, withdrawals, transactions)
 - Login terpisah: admin / admin123
 
+✅ **User Experience**
+- Animated splash screen dengan logo floating
+- Progress bar loading animation
+- Responsive design untuk mobile
+- Session-based splash control
+
 ## Deployment
 
 ### 1. Upload ke Web Hosting
