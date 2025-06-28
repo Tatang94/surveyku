@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberThreat LiveMap - Real-time Cyber Attack Monitoring</title>
+    <meta name="description" content="Real-time visualization of global cyber threats and attack patterns for security awareness and monitoring.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🛡️</span>
+                    <span class="logo-text">CyberThreat LiveMap</span>
+                </div>
+                <nav class="nav">
+                    <a href="#dashboard" class="nav-link active">Dashboard</a>
+                    <a href="#threats" class="nav-link">Threat Intel</a>
+                    <a href="#analytics" class="nav-link">Analytics</a>
+                    <a href="#alerts" class="nav-link">Alerts</a>
+                </nav>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Live Monitoring</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="main">
+        <div class="container">
+            <!-- Stats Overview -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card critical">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="criticalThreats">0</div>
+                            <div class="stat-label">Critical Threats</div>
+                        </div>
+                        <div class="stat-trend up">+12%</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-icon">🔍</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="activeScans">0</div>
+                            <div class="stat-label">Active Scans</div>
+                        </div>
+                        <div class="stat-trend up">+8%</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-icon">🌐</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="totalAttacks">0</div>
+                            <div class="stat-label">Global Attacks</div>
+                        </div>
+                        <div class="stat-trend down">-3%</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-icon">🛡️</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="blockedAttacks">0</div>
+                            <div class="stat-label">Blocked</div>
+                        </div>
+                        <div class="stat-trend up">+15%</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Content Grid -->
+            <div class="dashboard-grid">
+                <!-- World Map -->
+                <section class="map-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Global Threat Map</h2>
+                            <div class="map-controls">
+                                <button class="btn btn-sm active" data-filter="all">All</button>
+                                <button class="btn btn-sm" data-filter="malware">Malware</button>
+                                <button class="btn btn-sm" data-filter="ddos">DDoS</button>
+                                <button class="btn btn-sm" data-filter="phishing">Phishing</button>
+                            </div>
+                        </div>
+                        <div class="map-container">
+                            <div id="worldMap" class="world-map">
+                                <!-- SVG World Map will be inserted here -->
+                                <div class="attack-pulse" style="top: 30%; left: 20%;" data-type="malware"></div>
+                                <div class="attack-pulse" style="top: 40%; left: 60%;" data-type="ddos"></div>
+                                <div class="attack-pulse" style="top: 50%; left: 80%;" data-type="phishing"></div>
+                                <div class="attack-pulse" style="top: 35%; left: 45%;" data-type="malware"></div>
+                                <div class="attack-pulse" style="top: 25%; left: 70%;" data-type="ddos"></div>
+                            </div>
+                            <div class="map-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color malware"></div>
+                                    <span>Malware</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color ddos"></div>
+                                    <span>DDoS</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color phishing"></div>
+                                    <span>Phishing</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color scanning"></div>
+                                    <span>Scanning</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Live Feed -->
+                <section class="feed-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Live Threat Feed</h2>
+                            <div class="feed-controls">
+                                <button class="btn btn-sm" id="pauseFeed">⏸️ Pause</button>
+                                <button class="btn btn-sm" id="clearFeed">🗑️ Clear</button>
+                            </div>
+                        </div>
+                        <div class="threat-feed" id="threatFeed">
+                            <!-- Live threats will be populated here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Attack Types Chart -->
+                <section class="chart-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Attack Distribution</h2>
+                            <select class="timeframe-select">
+                                <option value="1h">Last Hour</option>
+                                <option value="24h" selected>Last 24 Hours</option>
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d">Last 30 Days</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="attackChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Top Targets -->
+                <section class="targets-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Top Targets</h2>
+                            <span class="update-time" id="targetsUpdate">Updated: 2 min ago</span>
+                        </div>
+                        <div class="targets-list" id="targetsList">
+                            <!-- Top targets will be populated here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Threat Intelligence -->
+                <section class="intel-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Threat Intelligence</h2>
+                            <div class="intel-status">
+                                <div class="status-dot active"></div>
+                                <span>Sources Active</span>
+                            </div>
+                        </div>
+                        <div class="intel-content">
+                            <div class="intel-item">
+                                <div class="intel-severity high">HIGH</div>
+                                <div class="intel-text">
+                                    <strong>APT-2024-001</strong> - New ransomware variant detected targeting healthcare sector
+                                </div>
+                                <div class="intel-time">5 min ago</div>
+                            </div>
+                            <div class="intel-item">
+                                <div class="intel-severity medium">MED</div>
+                                <div class="intel-text">
+                                    <strong>IOC-Update</strong> - 147 new malicious IPs added to blocklist
+                                </div>
+                                <div class="intel-time">12 min ago</div>
+                            </div>
+                            <div class="intel-item">
+                                <div class="intel-severity low">LOW</div>
+                                <div class="intel-text">
+                                    <strong>Vulnerability</strong> - CVE-2024-0001 patch available for Apache servers
+                                </div>
+                                <div class="intel-time">28 min ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- System Status -->
+                <section class="status-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>System Status</h2>
+                        </div>
+                        <div class="status-grid">
+                            <div class="status-item">
+                                <div class="status-label">Threat Detection</div>
+                                <div class="status-value online">Online</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label">API Services</div>
+                                <div class="status-value online">Online</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label">Data Processing</div>
+                                <div class="status-value online">Online</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label">Alert System</div>
+                                <div class="status-value online">Online</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>&copy; 2025 CyberThreat LiveMap. Security Intelligence Platform.</p>
+                    <p>Data sources: Public threat intelligence feeds, honeypots, and security research.</p>
+                </div>
+                <div class="footer-disclaimer">
+                    <p><strong>Disclaimer:</strong> This platform is for educational and security awareness purposes only. Data shown represents simulated and anonymized threat patterns.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
