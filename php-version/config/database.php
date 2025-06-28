@@ -4,13 +4,14 @@
  * Survey Platform Indonesia - PHP Version
  */
 
-// Database credentials - same as other versions
-define('DB_HOST', 'ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech');
+// Database credentials - Supabase PostgreSQL
+// Get these from your Supabase project settings > Database > Connection string
+define('DB_HOST', 'your-project-ref.supabase.co');
 define('DB_PORT', '5432');
-define('DB_NAME', 'neondb');
-define('DB_USER', 'neondb_owner');
-define('DB_PASS', 'npg_JTCAZ6fP1cXp');
-define('DB_CHARSET', 'utf8mb4');
+define('DB_NAME', 'postgres');
+define('DB_USER', 'postgres');
+define('DB_PASS', 'your-supabase-password');
+define('DB_CHARSET', 'utf8');
 
 // CPX Research configuration
 define('CPX_APP_ID', '27993');

@@ -38,8 +38,18 @@ php-version/
 
 ## Database Configuration
 
-Menggunakan database PostgreSQL yang sama dengan versi Express.js dan Next.js:
+Versi PHP mendukung dua opsi database:
 
+### Option 1: Supabase PostgreSQL (Recommended)
+```php
+define('DB_HOST', 'db.your-project-ref.supabase.co');
+define('DB_PORT', '5432');
+define('DB_NAME', 'postgres');
+define('DB_USER', 'postgres');
+define('DB_PASS', 'your-supabase-password');
+```
+
+### Option 2: Neon Database (Compatible)
 ```php
 define('DB_HOST', 'ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech');
 define('DB_PORT', '5432');
@@ -72,19 +82,32 @@ define('CPX_SECURE_HASH', 'your_secure_hash_here');
 
 ## Installation
 
-### 1. Upload Files
-Upload semua file ke direktori public_html atau www di hosting Anda.
+### Option A: Menggunakan Supabase (Recommended)
 
-### 2. Database Setup
-Database sudah tersedia dan tabel sudah dibuat. Tidak perlu setup tambahan.
+1. **Setup Supabase Database**
+   - Ikuti panduan lengkap di `SUPABASE_SETUP.md`
+   - Buat project di supabase.com
+   - Jalankan schema SQL dari `sql/supabase-schema.sql`
 
-### 3. Configuration
-Edit file `config/database.php` jika diperlukan perubahan konfigurasi.
+2. **Upload Files**
+   - Upload semua file ke hosting
+   - Rename `config/database-supabase.php` menjadi `config/database.php`
+   - Update credentials Supabase di file tersebut
 
-### 4. CPX Research Setup
+### Option B: Menggunakan Neon Database
+
+1. **Upload Files**
+   - Upload semua file ke hosting
+   - Gunakan `config/database.php` yang sudah ada (sudah dikonfigurasi untuk Neon)
+
+2. **Database Ready**
+   - Database dan tabel sudah tersedia
+   - Tidak perlu setup tambahan
+
+### 3. CPX Research Setup
 1. Login ke CPX Research dashboard
 2. Dapatkan Secure Hash untuk App ID 27993
-3. Update `CPX_SECURE_HASH` di `config/database.php`
+3. Update `CPX_SECURE_HASH` di file konfigurasi
 4. Set postback URL: `https://your-domain.com/api/cpx-postback.php`
 
 ## Features Detail

@@ -132,6 +132,7 @@ Database: neondb
 ## Deployment Options
 1. **Replit (Current)**: Express.js + React, running on port 5000
 2. **Vercel (Next.js)**: Complete Next.js version in `nextjs-version/` folder, ready for Vercel deployment
+3. **PHP Hosting**: Traditional PHP version in `php-version/` folder, supports Supabase and Neon PostgreSQL
 
 ## CPX Research Postback Files
 Multiple postback implementations created for flexible deployment:
