@@ -108,6 +108,9 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ Migration from Replit Agent to Replit environment completed (June 28, 2025)
 ✓ Next.js version created for Vercel deployment with same PostgreSQL database
 ✓ Stable database credentials provided for consistent import/export
+✓ Comprehensive help system with FAQ, contact info, and legal documents (June 28, 2025)
+✓ Multiple CPX postback implementations created for different deployment scenarios
+✓ Contact information updated: tatangtaryaedi.tte@gmail.com, +6289663596711
 
 ## Database Credentials (Stable)
 PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
@@ -119,6 +122,24 @@ Database: neondb
 ## Deployment Options
 1. **Replit (Current)**: Express.js + React, running on port 5000
 2. **Vercel (Next.js)**: Complete Next.js version in `nextjs-version/` folder, ready for Vercel deployment
+
+## CPX Research Postback Files
+Multiple postback implementations created for flexible deployment:
+- `cpx-postback.php` - PHP standalone for web hosting
+- `cpx-postback-standalone.js` - Node.js dedicated server
+- `server/routes.ts` - Integrated endpoint (current Replit)
+- `nextjs-version/src/app/api/cpx-postback/route.ts` - Next.js API route
+
+**Primary Postback URL:** https://[replit-domain].replit.dev/api/cpx-postback
+**Backup URLs:** Available for redundancy and high availability
+
+## Help & Support System
+Comprehensive help modal with:
+- FAQ for all user categories (General, Earnings, Surveys, Account)
+- Step-by-step platform usage guide
+- Direct contact integration (Email & WhatsApp)
+- Legal documents (Terms & Privacy Policy)
+- Accessible from header navigation and user menu
 
 ## User Preferences
 
