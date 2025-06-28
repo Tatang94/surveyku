@@ -16,12 +16,12 @@ function Router() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // Show splash screen for minimum 3 seconds or until auth check is complete
+    // Show splash screen for minimum 5 seconds or until auth check is complete
     const minTimeout = setTimeout(() => {
       if (!isLoading) {
         setShowSplash(false);
       }
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(minTimeout);
   }, [isLoading]);
