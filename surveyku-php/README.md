@@ -19,10 +19,21 @@ Versi PHP yang disederhanakan dari platform survei SurveyKu. Semua fitur digabun
 - Riwayat transaksi
 - Link ke platform survei CPX
 
-✅ **Database PostgreSQL**
-- Koneksi ke Neon PostgreSQL yang sama
-- Schema yang kompatibel dengan versi utama
+✅ **Database MySQL**
+- MySQL/MariaDB database dengan private hosting
+- Schema lengkap dengan foreign keys dan indexes
 - Transaksi dan user management
+
+✅ **Sistem Penarikan**
+- Jadwal penarikan tanggal 1-5 setiap bulan
+- Minimum penarikan Rp 50,000
+- Support DANA, GoPay, OVO, Transfer Bank
+- Admin approval system
+
+✅ **Admin Panel**
+- Dashboard admin untuk approve/reject penarikan
+- Statistik real-time (users, withdrawals, transactions)
+- Login terpisah: admin / admin123
 
 ## Deployment
 
@@ -101,6 +112,8 @@ surveyku-php/
 - **Login**: `https://yourdomain.com/index.php?page=login`
 - **Register**: `https://yourdomain.com/index.php?page=register`
 - **Dashboard**: `https://yourdomain.com/index.php?page=dashboard`
+- **Admin Login**: `https://yourdomain.com/index.php?page=admin`
+- **Admin Dashboard**: `https://yourdomain.com/index.php?page=admin_dashboard`
 - **CPX Postback**: `https://yourdomain.com/index.php?cpx_postback=1`
 
 ## Kustomisasi

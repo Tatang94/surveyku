@@ -97,6 +97,144 @@ function logout() {
     exit;
 }
 
+// Withdrawal functions
+function isWithdrawalPeriod() {
+    $today = date('j'); // Tanggal saat ini (1-31)
+    return $today >= 1 && $today <= 5; // Periode penarikan tanggal 1-5
+}
+
+function getMinimumWithdrawal() {
+    return 50000; // Minimum Rp 50,000
+}
+
+function getUserAvailableBalance($userId) {
+    $pdo = getDbConnection();
+    
+    // Total earnings
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE user_id = ? AND type = 'earning' AND status = 'completed'");
+    $stmt->execute([$userId]);
+    $earnings = $stmt->fetchColumn();
+    
+    // Total withdrawals (approved + paid)
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM withdrawal_requests WHERE user_id = ? AND status IN ('approved', 'paid')");
+    $stmt->execute([$userId]);
+    $withdrawals = $stmt->fetchColumn();
+    
+    return ($earnings * 15000) - $withdrawals; // Convert USD to IDR
+}
+
+function createWithdrawalRequest($userId, $amount, $paymentMethod, $paymentAccount, $paymentName) {
+    $pdo = getDbConnection();
+    
+    // Check available balance
+    $availableBalance = getUserAvailableBalance($userId);
+    if ($amount > $availableBalance) {
+        return ['success' => false, 'message' => 'Saldo tidak mencukupi'];
+    }
+    
+    // Check minimum withdrawal
+    if ($amount < getMinimumWithdrawal()) {
+        return ['success' => false, 'message' => 'Minimum penarikan Rp ' . number_format(getMinimumWithdrawal(), 0, ',', '.')];
+    }
+    
+    // Check if withdrawal period
+    if (!isWithdrawalPeriod()) {
+        return ['success' => false, 'message' => 'Periode penarikan hanya tanggal 1-5 setiap bulan'];
+    }
+    
+    // Check if user already has pending request this month
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM withdrawal_requests WHERE user_id = ? AND status = 'pending' AND MONTH(request_date) = MONTH(NOW()) AND YEAR(request_date) = YEAR(NOW())");
+    $stmt->execute([$userId]);
+    if ($stmt->fetchColumn() > 0) {
+        return ['success' => false, 'message' => 'Anda sudah memiliki permintaan penarikan yang sedang diproses bulan ini'];
+    }
+    
+    // Create withdrawal request
+    $stmt = $pdo->prepare("
+        INSERT INTO withdrawal_requests (user_id, amount, payment_method, payment_account, payment_name, status) 
+        VALUES (?, ?, ?, ?, ?, 'pending')
+    ");
+    
+    if ($stmt->execute([$userId, $amount, $paymentMethod, $paymentAccount, $paymentName])) {
+        return ['success' => true, 'message' => 'Permintaan penarikan berhasil diajukan'];
+    }
+    
+    return ['success' => false, 'message' => 'Gagal mengajukan permintaan penarikan'];
+}
+
+function getUserWithdrawals($userId) {
+    $pdo = getDbConnection();
+    $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE user_id = ? ORDER BY request_date DESC LIMIT 10");
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll();
+}
+
+// Admin functions
+function isAdmin() {
+    return isset($_SESSION['admin_id']);
+}
+
+function getCurrentAdmin() {
+    if (!isAdmin()) return null;
+    
+    $pdo = getDbConnection();
+    $stmt = $pdo->prepare("SELECT * FROM admin_users WHERE id = ?");
+    $stmt->execute([$_SESSION['admin_id']]);
+    return $stmt->fetch();
+}
+
+function adminLogin($username, $password) {
+    $pdo = getDbConnection();
+    $stmt = $pdo->prepare("SELECT * FROM admin_users WHERE username = ? AND status = 'active'");
+    $stmt->execute([$username]);
+    $admin = $stmt->fetch();
+    
+    if ($admin && password_verify($password, $admin['password'])) {
+        $_SESSION['admin_id'] = $admin['id'];
+        
+        // Update last login
+        $stmt = $pdo->prepare("UPDATE admin_users SET last_login = NOW() WHERE id = ?");
+        $stmt->execute([$admin['id']]);
+        
+        return true;
+    }
+    return false;
+}
+
+function adminLogout() {
+    unset($_SESSION['admin_id']);
+    header('Location: index.php?page=admin');
+    exit;
+}
+
+function getPendingWithdrawals() {
+    $pdo = getDbConnection();
+    $stmt = $pdo->prepare("
+        SELECT wr.*, u.name as user_name, u.email as user_email 
+        FROM withdrawal_requests wr 
+        JOIN users u ON wr.user_id = u.id 
+        WHERE wr.status = 'pending' 
+        ORDER BY wr.request_date ASC
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function processWithdrawal($requestId, $action, $notes = '') {
+    $pdo = getDbConnection();
+    $admin = getCurrentAdmin();
+    
+    $status = ($action === 'approve') ? 'approved' : 'rejected';
+    
+    $stmt = $pdo->prepare("
+        UPDATE withdrawal_requests 
+        SET status = ?, admin_notes = ?, processed_date = NOW(), processed_by = ? 
+        WHERE id = ?
+    ");
+    
+    return $stmt->execute([$status, $notes, $admin['name'], $requestId]);
+}
+
 // CPX Research functions
 function generateCPXUrl($userId) {
     global $CPX_APP_ID, $CPX_SECURE_HASH;
@@ -127,8 +265,12 @@ function getUserStats($userId) {
     $stmt->execute([$userId]);
     $completedSurveys = $stmt->fetchColumn();
     
+    // Available balance (for withdrawal)
+    $availableBalance = getUserAvailableBalance($userId);
+    
     return [
         'total_earnings' => $totalEarnings,
+        'available_balance' => $availableBalance,
         'completed_surveys' => $completedSurveys,
         'completion_rate' => $completedSurveys > 0 ? 95 : 0,
         'available_surveys' => 12
@@ -158,6 +300,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'logout':
                 logout();
+                break;
+                
+            case 'admin_login':
+                if (adminLogin($_POST['username'], $_POST['password'])) {
+                    header('Location: index.php?page=admin_dashboard');
+                    exit;
+                } else {
+                    $error = "Username atau password admin salah!";
+                }
+                break;
+                
+            case 'admin_logout':
+                adminLogout();
+                break;
+                
+            case 'withdrawal_request':
+                if (isLoggedIn()) {
+                    $result = createWithdrawalRequest(
+                        $_SESSION['user_id'],
+                        floatval($_POST['amount']),
+                        $_POST['payment_method'],
+                        $_POST['payment_account'],
+                        $_POST['payment_name']
+                    );
+                    
+                    if ($result['success']) {
+                        $success = $result['message'];
+                    } else {
+                        $error = $result['message'];
+                    }
+                }
+                break;
+                
+            case 'process_withdrawal':
+                if (isAdmin()) {
+                    $requestId = $_POST['request_id'];
+                    $action = $_POST['withdrawal_action']; // 'approve' or 'reject'
+                    $notes = $_POST['admin_notes'] ?? '';
+                    
+                    if (processWithdrawal($requestId, $action, $notes)) {
+                        $success = "Permintaan penarikan berhasil " . ($action === 'approve' ? 'disetujui' : 'ditolak');
+                    } else {
+                        $error = "Gagal memproses permintaan penarikan";
+                    }
+                }
                 break;
         }
     }
@@ -436,18 +623,143 @@ $user = getCurrentUser();
                             <div class="stat-label">Total Penghasilan</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number"><?= $stats['completed_surveys'] ?></div>
-                            <div class="stat-label">Survei Selesai</div>
+                            <div class="stat-number">Rp <?= number_format($stats['available_balance'], 0, ',', '.') ?></div>
+                            <div class="stat-label">Saldo Tersedia</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number"><?= $stats['completion_rate'] ?>%</div>
-                            <div class="stat-label">Tingkat Penyelesaian</div>
+                            <div class="stat-number"><?= $stats['completed_surveys'] ?></div>
+                            <div class="stat-label">Survei Selesai</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number"><?= $stats['available_surveys'] ?></div>
                             <div class="stat-label">Survei Tersedia</div>
                         </div>
                     </div>
+
+                    <!-- Withdrawal Section -->
+                    <div class="card">
+                        <h2 style="margin-bottom: 1rem;">Penarikan Dana</h2>
+                        
+                        <?php if (isWithdrawalPeriod()): ?>
+                            <div class="alert alert-success">
+                                <strong>Periode Penarikan Aktif!</strong> Anda dapat mengajukan penarikan hingga tanggal 5.
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-error">
+                                <strong>Periode Penarikan Ditutup.</strong> Penarikan hanya dapat diajukan tanggal 1-5 setiap bulan.
+                            </div>
+                        <?php endif; ?>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                            <!-- Withdrawal Form -->
+                            <div>
+                                <h3 style="margin-bottom: 1rem;">Ajukan Penarikan</h3>
+                                <form method="POST" style="<?= !isWithdrawalPeriod() || $stats['available_balance'] < getMinimumWithdrawal() ? 'opacity: 0.5; pointer-events: none;' : '' ?>">
+                                    <input type="hidden" name="action" value="withdrawal_request">
+                                    
+                                    <div class="form-group">
+                                        <label>Jumlah Penarikan</label>
+                                        <input type="number" name="amount" min="<?= getMinimumWithdrawal() ?>" 
+                                               max="<?= $stats['available_balance'] ?>" 
+                                               placeholder="Minimum Rp <?= number_format(getMinimumWithdrawal(), 0, ',', '.') ?>" required>
+                                        <small style="color: #64748b;">Saldo tersedia: Rp <?= number_format($stats['available_balance'], 0, ',', '.') ?></small>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Metode Pembayaran</label>
+                                        <select name="payment_method" required>
+                                            <option value="dana">DANA</option>
+                                            <option value="gopay">GoPay</option>
+                                            <option value="ovo">OVO</option>
+                                            <option value="bank">Transfer Bank</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Nomor Akun/Rekening</label>
+                                        <input type="text" name="payment_account" placeholder="081234567890 atau No. Rekening" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Nama Pemilik Akun</label>
+                                        <input type="text" name="payment_name" placeholder="Nama sesuai akun pembayaran" required>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                        Ajukan Penarikan
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Withdrawal Info -->
+                            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 1rem;">
+                                <h3 style="margin-bottom: 1rem;">Informasi Penarikan</h3>
+                                <ul style="list-style: disc; margin-left: 1.5rem; line-height: 1.8;">
+                                    <li>Penarikan hanya dapat diajukan tanggal <strong>1-5 setiap bulan</strong></li>
+                                    <li>Minimum penarikan <strong>Rp <?= number_format(getMinimumWithdrawal(), 0, ',', '.') ?></strong></li>
+                                    <li>Proses persetujuan admin <strong>1-3 hari kerja</strong></li>
+                                    <li>Transfer ke rekening <strong>dalam 24 jam</strong> setelah disetujui</li>
+                                    <li>Maksimal <strong>1 permintaan per bulan</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Withdrawal History -->
+                    <?php
+                    $withdrawals = getUserWithdrawals($user['id']);
+                    ?>
+                    <?php if (!empty($withdrawals)): ?>
+                        <div class="card">
+                            <h2 style="margin-bottom: 1rem;">Riwayat Penarikan</h2>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f8fafc;">
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Tanggal</th>
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Jumlah</th>
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Metode</th>
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($withdrawals as $withdrawal): ?>
+                                            <tr>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                                                    <?= date('d/m/Y', strtotime($withdrawal['request_date'])) ?>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                                                    Rp <?= number_format($withdrawal['amount'], 0, ',', '.') ?>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0; text-transform: uppercase;">
+                                                    <?= htmlspecialchars($withdrawal['payment_method']) ?>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                                                    <?php
+                                                    $statusColors = [
+                                                        'pending' => '#f59e0b',
+                                                        'approved' => '#059669',
+                                                        'rejected' => '#dc2626',
+                                                        'paid' => '#059669'
+                                                    ];
+                                                    $statusLabels = [
+                                                        'pending' => 'Menunggu',
+                                                        'approved' => 'Disetujui',
+                                                        'rejected' => 'Ditolak',
+                                                        'paid' => 'Dibayar'
+                                                    ];
+                                                    ?>
+                                                    <span style="background: <?= $statusColors[$withdrawal['status']] ?>; color: white; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem;">
+                                                        <?= $statusLabels[$withdrawal['status']] ?>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Available Surveys -->
                     <div class="card">
@@ -505,6 +817,161 @@ $user = getCurrentUser();
                             </div>
                         </div>
                     <?php endif; ?>
+                </div>
+            </section>
+
+        <?php elseif ($page === 'admin'): ?>
+            <section style="padding: 4rem 0;">
+                <div class="container">
+                    <div class="card" style="max-width: 400px; margin: 0 auto;">
+                        <h2 style="text-align: center; margin-bottom: 2rem;">Admin Login</h2>
+                        <form method="POST">
+                            <input type="hidden" name="action" value="admin_login">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" name="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Login Admin</button>
+                        </form>
+                        <p style="text-align: center; margin-top: 1rem; color: #64748b;">
+                            Default: admin / admin123
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        <?php elseif ($page === 'admin_dashboard' && isAdmin()): ?>
+            <?php
+            $admin = getCurrentAdmin();
+            $pendingWithdrawals = getPendingWithdrawals();
+            ?>
+            <section style="padding: 2rem 0;">
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h1>Admin Dashboard</h1>
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="admin_logout">
+                            <button type="submit" class="btn btn-secondary">Logout</button>
+                        </form>
+                    </div>
+
+                    <!-- Admin Stats -->
+                    <div class="stats-grid">
+                        <?php
+                        $pdo = getDbConnection();
+                        
+                        // Total users
+                        $stmt = $pdo->prepare("SELECT COUNT(*) FROM users");
+                        $stmt->execute();
+                        $totalUsers = $stmt->fetchColumn();
+                        
+                        // Pending withdrawals count
+                        $stmt = $pdo->prepare("SELECT COUNT(*) FROM withdrawal_requests WHERE status = 'pending'");
+                        $stmt->execute();
+                        $pendingCount = $stmt->fetchColumn();
+                        
+                        // Total withdrawals amount this month
+                        $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM withdrawal_requests WHERE status IN ('approved', 'paid') AND MONTH(request_date) = MONTH(NOW())");
+                        $stmt->execute();
+                        $monthlyWithdrawals = $stmt->fetchColumn();
+                        
+                        // Total transactions today
+                        $stmt = $pdo->prepare("SELECT COUNT(*) FROM transactions WHERE DATE(created_at) = CURDATE()");
+                        $stmt->execute();
+                        $todayTransactions = $stmt->fetchColumn();
+                        ?>
+                        
+                        <div class="stat-card">
+                            <div class="stat-number"><?= $totalUsers ?></div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number"><?= $pendingCount ?></div>
+                            <div class="stat-label">Penarikan Pending</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">Rp <?= number_format($monthlyWithdrawals, 0, ',', '.') ?></div>
+                            <div class="stat-label">Penarikan Bulan Ini</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number"><?= $todayTransactions ?></div>
+                            <div class="stat-label">Transaksi Hari Ini</div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Withdrawals -->
+                    <div class="card">
+                        <h2 style="margin-bottom: 1rem;">Permintaan Penarikan Pending</h2>
+                        <?php if (empty($pendingWithdrawals)): ?>
+                            <p style="text-align: center; color: #64748b; padding: 2rem;">
+                                Tidak ada permintaan penarikan yang menunggu persetujuan.
+                            </p>
+                        <?php else: ?>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f8fafc;">
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">User</th>
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Tanggal</th>
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Jumlah</th>
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Metode</th>
+                                            <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0;">Akun</th>
+                                            <th style="padding: 1rem; text-align: center; border-bottom: 1px solid #e2e8f0;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($pendingWithdrawals as $withdrawal): ?>
+                                            <tr>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                                                    <strong><?= htmlspecialchars($withdrawal['user_name']) ?></strong><br>
+                                                    <small style="color: #64748b;"><?= htmlspecialchars($withdrawal['user_email']) ?></small>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                                                    <?= date('d/m/Y H:i', strtotime($withdrawal['request_date'])) ?>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                                                    <strong>Rp <?= number_format($withdrawal['amount'], 0, ',', '.') ?></strong>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0; text-transform: uppercase;">
+                                                    <?= htmlspecialchars($withdrawal['payment_method']) ?>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                                                    <strong><?= htmlspecialchars($withdrawal['payment_name']) ?></strong><br>
+                                                    <small style="color: #64748b;"><?= htmlspecialchars($withdrawal['payment_account']) ?></small>
+                                                </td>
+                                                <td style="padding: 1rem; border-bottom: 1px solid #e2e8f0; text-align: center;">
+                                                    <form method="POST" style="display: inline-block; margin: 0;">
+                                                        <input type="hidden" name="action" value="process_withdrawal">
+                                                        <input type="hidden" name="request_id" value="<?= $withdrawal['id'] ?>">
+                                                        <input type="hidden" name="withdrawal_action" value="approve">
+                                                        <input type="text" name="admin_notes" placeholder="Catatan admin" style="margin-bottom: 0.5rem; padding: 0.5rem; width: 150px; font-size: 0.875rem;">
+                                                        <div>
+                                                            <button type="submit" class="btn btn-success" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
+                                                                Setuju
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                    <form method="POST" style="display: inline-block; margin: 0;">
+                                                        <input type="hidden" name="action" value="process_withdrawal">
+                                                        <input type="hidden" name="request_id" value="<?= $withdrawal['id'] ?>">
+                                                        <input type="hidden" name="withdrawal_action" value="reject">
+                                                        <input type="hidden" name="admin_notes" value="Ditolak oleh admin">
+                                                        <button type="submit" class="btn" style="background: #dc2626; color: white; padding: 0.5rem 1rem;">
+                                                            Tolak
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </section>
 

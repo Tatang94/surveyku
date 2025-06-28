@@ -127,6 +127,10 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ MySQL schema with proper foreign keys and indexes implemented
 ✓ Standalone CPX postback file created for flexible deployment options (June 28, 2025)
 ✓ Complete postback security with IP whitelist, logging, and duplicate protection
+✓ Monthly withdrawal system implemented with admin approval (June 28, 2025)
+✓ Withdrawal period restricted to 1st-5th of each month for DANA payments
+✓ Admin dashboard for managing withdrawal requests and user statistics
+✓ Multi-payment method support (DANA, GoPay, OVO, Bank Transfer)
 
 ## Database Credentials (Stable)
 PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
