@@ -51,9 +51,16 @@ mysql -u username -p nama_database < sql-setup.sql
 ```
 
 ### 3. Setup CPX Research
-Postback URL untuk CPX Research:
+Pilihan Postback URL untuk CPX Research:
+
+**Option 1 - Integrated (Recommended):**
 ```
 https://yourdomain.com/index.php?cpx_postback=1
+```
+
+**Option 2 - Standalone:**
+```
+https://yourdomain.com/cpx-postback.php
 ```
 
 ### 4. Permissions
@@ -80,11 +87,12 @@ File `.htaccess` sudah dikonfigurasi dengan:
 
 ```
 surveyku-php/
-├── index.php       # Aplikasi utama (all-in-one)
-├── config.php      # Konfigurasi database terpisah
-├── .htaccess       # Konfigurasi Apache
-├── sql-setup.sql   # Schema database MySQL
-└── README.md       # Dokumentasi ini
+├── index.php        # Aplikasi utama (all-in-one)
+├── config.php       # Konfigurasi database terpisah
+├── cpx-postback.php # Postback handler CPX Research (standalone)
+├── .htaccess        # Konfigurasi Apache
+├── sql-setup.sql    # Schema database MySQL
+└── README.md        # Dokumentasi ini
 ```
 
 ## URLs

@@ -125,6 +125,8 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ PHP version updated to use MySQL/MariaDB for private hosting compatibility (June 28, 2025)
 ✓ Separate config.php file created for easier database configuration
 ✓ MySQL schema with proper foreign keys and indexes implemented
+✓ Standalone CPX postback file created for flexible deployment options (June 28, 2025)
+✓ Complete postback security with IP whitelist, logging, and duplicate protection
 
 ## Database Credentials (Stable)
 PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require

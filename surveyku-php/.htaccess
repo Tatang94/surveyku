@@ -63,6 +63,11 @@ RewriteEngine On
     Deny from all
 </Files>
 
+<Files "cpx_postback.log">
+    Order allow,deny
+    Deny from all
+</Files>
+
 # Pretty URLs (optional)
 # RewriteCond %{REQUEST_FILENAME} !-f
 # RewriteCond %{REQUEST_FILENAME} !-d
