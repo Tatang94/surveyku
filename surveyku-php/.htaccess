@@ -58,6 +58,11 @@ RewriteEngine On
     Deny from all
 </Files>
 
+<Files "sql-setup.sql">
+    Order allow,deny
+    Deny from all
+</Files>
+
 # Pretty URLs (optional)
 # RewriteCond %{REQUEST_FILENAME} !-f
 # RewriteCond %{REQUEST_FILENAME} !-d

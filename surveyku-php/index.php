@@ -4,20 +4,17 @@
  * File ini menggabungkan semua fungsi dalam satu aplikasi sederhana
  */
 
-// Konfigurasi Database (PostgreSQL Neon)
-$DATABASE_URL = "postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require";
+// Load konfigurasi dari file terpisah
+require_once 'config.php';
 
-// Parse database URL
-$db_parts = parse_url($DATABASE_URL);
-$DB_HOST = $db_parts['host'];
-$DB_PORT = $db_parts['port'] ?? 5432;
-$DB_NAME = ltrim($db_parts['path'], '/');
-$DB_USER = $db_parts['user'];
-$DB_PASS = $db_parts['pass'];
-
-// CPX Research Configuration
-$CPX_APP_ID = "27993";
-$CPX_SECURE_HASH = "0afd1ccfc80b096b3b8b61d55ac6ff6b";
+// Ambil konstanta dari config
+$DB_HOST = DB_HOST;
+$DB_NAME = DB_NAME; 
+$DB_USER = DB_USER;
+$DB_PASS = DB_PASS;
+$DB_PORT = DB_PORT;
+$CPX_APP_ID = CPX_APP_ID;
+$CPX_SECURE_HASH = CPX_SECURE_HASH;
 
 // Start session
 session_start();
@@ -25,11 +22,12 @@ session_start();
 // Database connection
 function getDbConnection() {
     global $DB_HOST, $DB_PORT, $DB_NAME, $DB_USER, $DB_PASS;
-    $dsn = "pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME;sslmode=require";
+    $dsn = "mysql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME;charset=utf8mb4";
     try {
         return new PDO($dsn, $DB_USER, $DB_PASS, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
         ]);
     } catch (PDOException $e) {
         die("Database connection failed: " . $e->getMessage());
@@ -168,10 +166,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Handle CPX Postback
 if (isset($_GET['cpx_postback']) && $_GET['cpx_postback'] === '1') {
     // Validate IP (CPX Research IPs)
-    $allowed_ips = ['188.40.3.73', '157.90.97.92'];
+    global $CPX_ALLOWED_IPS;
     $client_ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'];
     
-    if (in_array($client_ip, $allowed_ips)) {
+    if (in_array($client_ip, $CPX_ALLOWED_IPS)) {
         $user_id = $_GET['user_id'] ?? null;
         $reward = floatval($_GET['reward_value'] ?? 0);
         $currency = $_GET['currency_name'] ?? 'USD';

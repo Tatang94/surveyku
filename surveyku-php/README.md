@@ -28,16 +28,27 @@ Versi PHP yang disederhanakan dari platform survei SurveyKu. Semua fitur digabun
 
 ### 1. Upload ke Web Hosting
 ```bash
-# Upload file-file berikut ke public_html atau folder web:
+# Upload semua file ke public_html atau folder web:
 - index.php (file utama)
+- config.php (konfigurasi database)
 - .htaccess (konfigurasi Apache)
+- sql-setup.sql (schema database)
 ```
 
 ### 2. Konfigurasi Database
-File `index.php` sudah dikonfigurasi dengan database PostgreSQL yang sama:
-- Host: ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech
-- Database: neondb
-- User: neondb_owner
+1. Buat database MySQL baru di hosting Anda
+2. Edit file `config.php` dengan data hosting Anda:
+```php
+define('DB_HOST', 'localhost');     // Host database
+define('DB_NAME', 'nama_database'); // Nama database Anda
+define('DB_USER', 'username_db');   // Username database
+define('DB_PASS', 'password_db');   // Password database
+```
+
+3. Import `sql-setup.sql` melalui phpMyAdmin atau command line:
+```bash
+mysql -u username -p nama_database < sql-setup.sql
+```
 
 ### 3. Setup CPX Research
 Postback URL untuk CPX Research:
@@ -69,9 +80,11 @@ File `.htaccess` sudah dikonfigurasi dengan:
 
 ```
 surveyku-php/
-├── index.php      # Aplikasi utama (all-in-one)
-├── .htaccess      # Konfigurasi Apache
-└── README.md      # Dokumentasi ini
+├── index.php       # Aplikasi utama (all-in-one)
+├── config.php      # Konfigurasi database terpisah
+├── .htaccess       # Konfigurasi Apache
+├── sql-setup.sql   # Schema database MySQL
+└── README.md       # Dokumentasi ini
 ```
 
 ## URLs
@@ -123,6 +136,6 @@ File ini self-contained dan mudah dimaintain:
 ## Compatibility
 
 - PHP 7.4+
-- PostgreSQL 12+
+- MySQL 5.7+ atau MariaDB 10.3+
 - Apache 2.4+ dengan mod_rewrite
 - Modern browsers (IE11+)
