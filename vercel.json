@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "buildCommand": "cd nextjs-version && npm install && npm run build",
+  "outputDirectory": "nextjs-version/.next",
+  "installCommand": "cd nextjs-version && npm install",
+  "framework": "nextjs",
+  "rootDirectory": "nextjs-version"
+}

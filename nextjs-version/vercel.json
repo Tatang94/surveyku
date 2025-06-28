@@ -1,9 +1,10 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "buildCommand": "cd nextjs-version && npm install && npm run build",
+  "outputDirectory": "nextjs-version/.next",
+  "devCommand": "cd nextjs-version && npm run dev",
+  "installCommand": "cd nextjs-version && npm install",
   "framework": "nextjs",
+  "rootDirectory": "nextjs-version",
   "env": {
     "DATABASE_URL": "@database_url",
     "NEXTAUTH_SECRET": "@nextauth_secret",
