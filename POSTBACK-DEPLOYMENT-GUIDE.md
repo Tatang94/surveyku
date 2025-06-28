@@ -1,6 +1,17 @@
 # CPX Research Postback Deployment Guide
 **SurveyKu Platform - Support: tatangtaryaedi.tte@gmail.com | +6289663596711**
 
+## Keamanan IP Whitelist
+
+**PENTING**: Semua implementasi postback dilengkapi validasi IP whitelist CPX Research.
+
+### IP yang Diotorisasi:
+- `188.40.3.73`
+- `2a01:4f8:d0a:30ff::2`
+- `157.90.97.92`
+
+Request dari IP lain akan ditolak dengan error 403.
+
 ## File Postback yang Telah Dibuat
 
 ### 1. **cpx-postback.php** - PHP Standalone Version

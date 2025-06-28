@@ -18,7 +18,12 @@ const CONFIG = {
     CPX_APP_ID: '27993',
     CPX_SECURE_HASH: process.env.CPX_SECURE_HASH || 'your-secure-hash-here',
     API_BASE_URL: process.env.API_BASE_URL || 'https://your-replit-domain.replit.dev',
-    LOG_ENABLED: true
+    LOG_ENABLED: true,
+    WHITELIST_IPS: [
+        '188.40.3.73',
+        '2a01:4f8:d0a:30ff::2',
+        '157.90.97.92'
+    ]
 };
 
 // Middleware
@@ -45,8 +50,35 @@ function logMessage(message) {
     }
 }
 
+// Get client IP address
+function getClientIP(req) {
+    return req.headers['x-forwarded-for']?.split(',')[0] || 
+           req.headers['x-real-ip'] || 
+           req.connection.remoteAddress || 
+           req.socket.remoteAddress ||
+           (req.connection.socket ? req.connection.socket.remoteAddress : null);
+}
+
+// Validate IP whitelist
+function validateIPWhitelist(req) {
+    const clientIP = getClientIP(req);
+    logMessage(`Postback request from IP: ${clientIP}`);
+    
+    if (!CONFIG.WHITELIST_IPS.includes(clientIP)) {
+        logMessage(`Rejected postback from unauthorized IP: ${clientIP}`);
+        return false;
+    }
+    
+    return true;
+}
+
 // Validate CPX postback
-function validatePostback(params) {
+function validatePostback(params, req) {
+    // First validate IP whitelist
+    if (!validateIPWhitelist(req)) {
+        return false;
+    }
+    
     const required = ['app_id', 'user_id', 'trans_id', 'reward', 'signature'];
     
     // Check required parameters
@@ -127,11 +159,11 @@ app.all('/postback', async (req, res) => {
         
         logMessage(`Postback received: ${JSON.stringify(params)}`);
         
-        // Validate postback
-        if (!validatePostback(params)) {
+        // Validate postback (including IP whitelist)
+        if (!validatePostback(params, req)) {
             logMessage('Postback validation failed');
             return res.status(400).json({
-                error: 'Invalid postback data',
+                error: 'Invalid postback data or unauthorized IP',
                 timestamp: new Date().toISOString()
             });
         }

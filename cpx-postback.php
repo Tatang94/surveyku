@@ -30,6 +30,13 @@ define('CPX_APP_ID', '27993');
 define('CPX_SECURE_HASH', 'your-secure-hash-here'); // Replace with actual secure hash from CPX Research
 define('API_BASE_URL', 'https://your-replit-domain.replit.dev'); // Replace with your actual Replit domain
 
+// CPX Research IP Whitelist
+define('CPX_WHITELIST_IPS', [
+    '188.40.3.73',
+    '2a01:4f8:d0a:30ff::2',
+    '157.90.97.92'
+]);
+
 /**
  * Log function for debugging
  */
@@ -40,9 +47,43 @@ function logMessage($message) {
 }
 
 /**
+ * Get client IP address
+ */
+function getClientIP() {
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        return $_SERVER['HTTP_X_REAL_IP'];
+    } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+        return $_SERVER['REMOTE_ADDR'];
+    }
+    return 'unknown';
+}
+
+/**
+ * Validate CPX Research IP whitelist
+ */
+function validateIPWhitelist() {
+    $clientIP = getClientIP();
+    logMessage("Postback request from IP: $clientIP");
+    
+    if (!in_array($clientIP, CPX_WHITELIST_IPS)) {
+        logMessage("Rejected postback from unauthorized IP: $clientIP");
+        return false;
+    }
+    
+    return true;
+}
+
+/**
  * Validate CPX Research postback
  */
 function validateCPXPostback($params) {
+    // First validate IP whitelist
+    if (!validateIPWhitelist()) {
+        return false;
+    }
+    
     // Validate required parameters
     $required = ['app_id', 'user_id', 'trans_id', 'reward', 'signature'];
     foreach ($required as $param) {

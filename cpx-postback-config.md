@@ -5,7 +5,18 @@
 **Platform:** Survey Platform Indonesia  
 **Email Support:** tatangtaryaedi.tte@gmail.com  
 **WhatsApp Support:** +6289663596711  
-**CPX App ID:** 27993  
+**CPX App ID:** 27993
+
+## Keamanan IP Whitelist
+
+**PENTING**: Semua implementasi postback dilengkapi validasi IP whitelist untuk keamanan tambahan.
+
+### IP CPX Research yang Diotorisasi:
+- `188.40.3.73`
+- `2a01:4f8:d0a:30ff::2`
+- `157.90.97.92`
+
+Semua request postback dari IP lain akan otomatis ditolak dengan response 403 Forbidden.  
 
 ## URL Postback Utama
 

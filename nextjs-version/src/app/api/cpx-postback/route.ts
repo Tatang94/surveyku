@@ -7,11 +7,46 @@ import crypto from 'crypto';
 const CPX_CONFIG = {
   APP_ID: '27993',
   SECURE_HASH: process.env.CPX_SECURE_HASH || 'your-secure-hash-here',
+  WHITELIST_IPS: [
+    '188.40.3.73',
+    '2a01:4f8:d0a:30ff::2',
+    '157.90.97.92'
+  ]
 };
 
 function logMessage(message: string) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] CPX Postback: ${message}`);
+}
+
+function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  const clientIp = request.headers.get('x-client-ip');
+  
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  if (realIp) {
+    return realIp;
+  }
+  if (clientIp) {
+    return clientIp;
+  }
+  
+  return 'unknown';
+}
+
+function validateIPWhitelist(request: NextRequest): boolean {
+  const clientIP = getClientIP(request);
+  logMessage(`Postback request from IP: ${clientIP}`);
+  
+  if (!CPX_CONFIG.WHITELIST_IPS.includes(clientIP)) {
+    logMessage(`Rejected postback from unauthorized IP: ${clientIP}`);
+    return false;
+  }
+  
+  return true;
 }
 
 function validateSignature(userId: string, transId: string, reward: string, signature: string): boolean {
@@ -30,6 +65,14 @@ export async function POST(request: NextRequest) {
 
 async function handlePostback(request: NextRequest) {
   try {
+    // First validate IP whitelist
+    if (!validateIPWhitelist(request)) {
+      return NextResponse.json(
+        { error: 'Unauthorized IP address' },
+        { status: 403 }
+      );
+    }
+
     // Get parameters from URL or body
     const url = new URL(request.url);
     let params: any = {};

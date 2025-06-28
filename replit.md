@@ -111,6 +111,8 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ Comprehensive help system with FAQ, contact info, and legal documents (June 28, 2025)
 ✓ Multiple CPX postback implementations created for different deployment scenarios
 ✓ Contact information updated: tatangtaryaedi.tte@gmail.com, +6289663596711
+✓ IP whitelist security implemented across all postback files (June 28, 2025)
+✓ CPX Research authorized IPs: 188.40.3.73, 2a01:4f8:d0a:30ff::2, 157.90.97.92
 
 ## Database Credentials (Stable)
 PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require

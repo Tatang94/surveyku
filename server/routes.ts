@@ -160,9 +160,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CPX Research IP whitelist
+  const CPX_WHITELIST_IPS = [
+    '188.40.3.73',
+    '2a01:4f8:d0a:30ff::2', 
+    '157.90.97.92'
+  ];
+
+  // Get client IP helper function
+  const getClientIP = (req: any) => {
+    return req.headers['x-forwarded-for']?.split(',')[0] || 
+           req.headers['x-real-ip'] || 
+           req.connection.remoteAddress || 
+           req.socket.remoteAddress ||
+           (req.connection.socket ? req.connection.socket.remoteAddress : null);
+  };
+
   // CPX Research postback endpoint
   app.post("/api/postback/cpx", async (req, res) => {
     try {
+      // Validate IP whitelist
+      const clientIP = getClientIP(req);
+      console.log(`CPX Postback from IP: ${clientIP}`);
+      
+      if (!CPX_WHITELIST_IPS.includes(clientIP)) {
+        console.log(`Rejected postback from unauthorized IP: ${clientIP}`);
+        return res.status(403).json({ 
+          error: "Unauthorized IP address",
+          ip: clientIP 
+        });
+      }
       const {
         user_id,
         survey_id,
