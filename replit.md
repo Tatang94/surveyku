@@ -121,6 +121,10 @@ This is a full-stack survey platform application built with React + TypeScript f
 ✓ Complete PHP application with authentication, CPX integration, and responsive design
 ✓ Apache .htaccess configuration with security headers and performance optimization
 ✓ Deployment guides created for all three versions (Replit, Vercel, PHP hosting)
+✓ PHP version simplified into single-file application in `surveyku-php/` folder (June 28, 2025)
+✓ All-in-one PHP file with authentication, CPX integration, and responsive design
+✓ Simplified deployment with just index.php, .htaccess, and README
+✓ Same PostgreSQL database integration for consistency across versions
 
 ## Database Credentials (Stable)
 PostgreSQL URL: postgresql://neondb_owner:npg_JTCAZ6fP1cXp@ep-square-wind-afhnt68h.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
