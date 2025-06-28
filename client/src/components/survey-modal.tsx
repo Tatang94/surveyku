@@ -36,26 +36,17 @@ export default function SurveyModal({ survey, isOpen, onClose }: SurveyModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-4 border-b">
+      <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 m-0">
+        <DialogHeader className="p-4 pb-2 border-b">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-lg font-medium">{survey.title}</DialogTitle>
               <p className="text-sm text-gray-500 mt-1">{survey.description}</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenInNewTab}
-              className="ml-4"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Buka di Tab Baru
-            </Button>
           </div>
         </DialogHeader>
         
-        <div className="p-6">
+        <div className="flex-1">
           {isLoading ? (
             <div className="survey-loading">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
@@ -63,15 +54,16 @@ export default function SurveyModal({ survey, isOpen, onClose }: SurveyModalProp
               <Skeleton className="h-96 w-full mt-4" />
             </div>
           ) : urlData?.url ? (
-            <div className="cpx-survey-container">
+            <div className="w-full h-full">
               <iframe 
                 src={urlData.url}
                 width="100%" 
-                height="600px"
+                height="100%"
                 frameBorder="0"
                 title={survey.title}
-                className="rounded"
+                className="w-full h-full"
                 onLoad={() => setIsLoading(false)}
+                style={{ minHeight: 'calc(100vh - 80px)' }}
               />
             </div>
           ) : (

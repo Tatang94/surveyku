@@ -57,20 +57,43 @@ export default function Sidebar() {
     withdrawMutation.mutate(balance);
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'SurveyKu - Platform Survey Berbayar',
-        text: 'Bergabung dengan SurveyKu dan dapatkan penghasilan dari survey!',
-        url: window.location.origin,
-      });
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.origin);
-      toast({
-        title: "Link berhasil disalin",
-        description: "Link referral telah disalin ke clipboard",
-      });
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'SurveyKu - Platform Survey Berbayar',
+          text: 'Bergabung dengan SurveyKu dan dapatkan penghasilan dari survey!',
+          url: window.location.origin,
+        });
+        toast({
+          title: "Berhasil dibagikan",
+          description: "Link referral telah dibagikan",
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(window.location.origin);
+        toast({
+          title: "Link berhasil disalin",
+          description: "Link referral telah disalin ke clipboard",
+        });
+      }
+    } catch (error) {
+      // Handle share cancellation or clipboard errors silently
+      console.log('Share action canceled or failed:', error);
+      // Try clipboard as fallback
+      try {
+        await navigator.clipboard.writeText(window.location.origin);
+        toast({
+          title: "Link berhasil disalin",
+          description: "Link referral telah disalin ke clipboard",
+        });
+      } catch (clipboardError) {
+        toast({
+          title: "Link referral",
+          description: `Salin link ini: ${window.location.origin}`,
+          variant: "default",
+        });
+      }
     }
   };
 
