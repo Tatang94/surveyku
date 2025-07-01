@@ -9,7 +9,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
-  validateUser(username: string, password: string): Promise<User | null>;
+  validateUser(username: string, pattern: string): Promise<User | null>;
   
   // Survey operations
   getSurveys(): Promise<Survey[]>;
@@ -110,12 +110,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    // For pattern locks, we'll hash the pattern for security
+    const hashedPattern = await bcrypt.hash(insertUser.pattern, 10);
     const [user] = await db
       .insert(users)
       .values({
         username: insertUser.username,
-        password: hashedPassword,
+        pattern: hashedPattern,
       })
       .returning();
     return user;
@@ -130,11 +131,11 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async validateUser(username: string, password: string): Promise<User | null> {
+  async validateUser(username: string, pattern: string): Promise<User | null> {
     const user = await this.getUserByUsername(username);
     if (!user) return null;
     
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = await bcrypt.compare(pattern, user.pattern);
     return isValid ? user : null;
   }
 

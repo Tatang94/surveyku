@@ -5,7 +5,7 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  pattern: text("pattern").notNull(), // Store pattern as string like "1-2-3-6-9"
   balance: decimal("balance", { precision: 10, scale: 2 }).default("0.00"),
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0.00"),
   completedSurveys: integer("completed_surveys").default(0),
@@ -71,17 +71,29 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   createdAt: true,
 });
 
-// Validasi password yang kuat
-const passwordSchema = z.string()
-  .min(8, "Password minimal 8 karakter")
-  .regex(/[A-Z]/, "Password harus mengandung minimal 1 huruf besar")
-  .regex(/[a-z]/, "Password harus mengandung minimal 1 huruf kecil")
-  .regex(/[0-9]/, "Password harus mengandung minimal 1 angka")
-  .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password harus mengandung minimal 1 karakter khusus (!@#$%^&*(),.?\":{}|<>)");
+// Validasi pattern lock
+const patternSchema = z.string()
+  .min(7, "Pola minimal 4 titik") // "1-2-3-4" = 7 characters minimum
+  .regex(/^[1-9](-[1-9])*$/, "Format pola tidak valid")
+  .refine(
+    (pattern) => {
+      const points = pattern.split('-').map(Number);
+      return points.length >= 4 && points.length <= 9;
+    },
+    "Pola harus terdiri dari 4-9 titik"
+  )
+  .refine(
+    (pattern) => {
+      const points = pattern.split('-').map(Number);
+      const uniquePoints = new Set(points);
+      return uniquePoints.size === points.length;
+    },
+    "Setiap titik hanya boleh digunakan sekali"
+  );
 
 export const loginSchema = z.object({
   username: z.string().min(3, "Username minimal 3 karakter"),
-  password: z.string().min(1, "Password wajib diisi"),
+  pattern: z.string().min(1, "Pola wajib diisi"),
 });
 
 export const registerSchema = z.object({
@@ -89,11 +101,11 @@ export const registerSchema = z.object({
     .min(3, "Username minimal 3 karakter")
     .max(20, "Username maksimal 20 karakter")
     .regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh mengandung huruf, angka, dan underscore"),
-  password: passwordSchema,
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Password tidak cocok",
-  path: ["confirmPassword"],
+  pattern: patternSchema,
+  confirmPattern: z.string(),
+}).refine((data) => data.pattern === data.confirmPattern, {
+  message: "Pola tidak cocok",
+  path: ["confirmPattern"],
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
