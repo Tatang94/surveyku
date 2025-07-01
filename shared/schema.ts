@@ -9,10 +9,10 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  dateOfBirth: text("date_of_birth"),
-  gender: text("gender"),
+  dateOfBirth: text("date_of_birth").default(""),
+  gender: text("gender").default(""),
   country: text("country").default("ID"),
-  zipCode: text("zip_code"),
+  zipCode: text("zip_code").default(""),
   balance: decimal("balance", { precision: 10, scale: 2 }).default("0.00"),
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0.00"),
   completedSurveys: integer("completed_surveys").default(0),
@@ -80,12 +80,21 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   createdAt: true,
 });
 
+// Validasi password yang kuat
+const passwordSchema = z.string()
+  .min(8, "Password minimal 8 karakter")
+  .regex(/[A-Z]/, "Password harus mengandung minimal 1 huruf besar")
+  .regex(/[a-z]/, "Password harus mengandung minimal 1 huruf kecil")
+  .regex(/[0-9]/, "Password harus mengandung minimal 1 angka")
+  .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password harus mengandung minimal 1 karakter khusus (!@#$%^&*(),.?\":{}|<>)");
+
 export const loginSchema = z.object({
   email: z.string().email("Email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
+  password: z.string().min(1, "Password wajib diisi"),
 });
 
 export const registerSchema = insertUserSchema.extend({
+  password: passwordSchema,
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Password tidak cocok",
