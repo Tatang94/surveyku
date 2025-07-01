@@ -59,7 +59,7 @@ export default function PatternDemo() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center space-x-2">
-              <span>Demo Pola Password</span>
+              <span>Buat Pola</span>
               <Badge className={getStatusColor()}>
                 {getStatusText()}
               </Badge>
@@ -70,15 +70,6 @@ export default function PatternDemo() {
               {mode === 'complete' && 'Pola password berhasil dibuat'}
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetDemo}
-            className="flex items-center space-x-1"
-          >
-            <RotateCcw className="h-4 w-4" />
-            <span>Reset</span>
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -111,34 +102,9 @@ export default function PatternDemo() {
           </div>
         )}
 
-        {savedPattern.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="font-medium text-gray-900">Status Pola:</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Pola Asli:</span>
-                <span className="font-mono">{savedPattern.join('-')}</span>
-              </div>
-              {mode === 'confirm' && currentPattern.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Pola Konfirmasi:</span>
-                  <span className="font-mono">{currentPattern.join('-')}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-2">Cara Menggunakan:</h4>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>• Sentuh dan seret untuk menghubungkan titik-titik</li>
-            <li>• Minimal 4 titik harus terhubung</li>
-            <li>• Setiap titik hanya bisa digunakan sekali</li>
-            <li>• Lepas sentuhan untuk menyelesaikan pola</li>
-            <li>• Ulangi pola yang sama untuk konfirmasi</li>
-          </ul>
-        </div>
+
+
       </CardContent>
     </Card>
   );

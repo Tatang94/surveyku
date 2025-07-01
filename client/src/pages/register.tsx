@@ -175,15 +175,6 @@ export default function Register() {
                       </p>
                     </div>
 
-                    {pattern && (
-                      <Alert>
-                        <CheckCircle2 className="h-4 w-4" />
-                        <AlertDescription>
-                          Pola asli: {pattern}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
                     {confirmPattern && confirmPattern !== pattern && (
                       <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />

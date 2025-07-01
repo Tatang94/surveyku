@@ -238,18 +238,7 @@ export default function PatternLock({
           />
         ))}
       </div>
-      
-      {/* Pattern display */}
-      <div className="mt-3 text-center">
-        <p className="text-sm text-gray-600">
-          Pola: {pattern.length > 0 ? pattern.join(' → ') : 'Belum ada pola'}
-        </p>
-        {pattern.length > 0 && pattern.length < minLength && (
-          <p className="text-xs text-red-500 mt-1">
-            Minimal {minLength} titik
-          </p>
-        )}
-      </div>
+
     </div>
   );
 }
