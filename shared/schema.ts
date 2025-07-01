@@ -5,18 +5,10 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  dateOfBirth: text("date_of_birth").default(""),
-  gender: text("gender").default(""),
-  country: text("country").default("ID"),
-  zipCode: text("zip_code").default(""),
   balance: decimal("balance", { precision: 10, scale: 2 }).default("0.00"),
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0.00"),
   completedSurveys: integer("completed_surveys").default(0),
-  profileCompleteness: integer("profile_completeness").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -59,7 +51,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
   balance: true,
   totalEarnings: true,
   completedSurveys: true,
-  profileCompleteness: true,
   isActive: true,
   createdAt: true,
 });
@@ -89,11 +80,15 @@ const passwordSchema = z.string()
   .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password harus mengandung minimal 1 karakter khusus (!@#$%^&*(),.?\":{}|<>)");
 
 export const loginSchema = z.object({
-  email: z.string().email("Email tidak valid"),
+  username: z.string().min(3, "Username minimal 3 karakter"),
   password: z.string().min(1, "Password wajib diisi"),
 });
 
-export const registerSchema = insertUserSchema.extend({
+export const registerSchema = z.object({
+  username: z.string()
+    .min(3, "Username minimal 3 karakter")
+    .max(20, "Username maksimal 20 karakter")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh mengandung huruf, angka, dan underscore"),
   password: passwordSchema,
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {

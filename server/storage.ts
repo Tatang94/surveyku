@@ -6,11 +6,10 @@ import bcrypt from "bcrypt";
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
-  validateUser(email: string, password: string): Promise<User | null>;
+  validateUser(username: string, password: string): Promise<User | null>;
   
   // Survey operations
   getSurveys(): Promise<Survey[]>;
@@ -103,10 +102,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
-  }
+
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
@@ -118,13 +114,8 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .insert(users)
       .values({
-        ...insertUser,
+        username: insertUser.username,
         password: hashedPassword,
-        dateOfBirth: insertUser.dateOfBirth || null,
-        gender: insertUser.gender || null,
-        country: insertUser.country || null,
-        zipCode: insertUser.zipCode || null,
-        profileCompleteness: this.calculateProfileCompleteness(insertUser),
       })
       .returning();
     return user;
@@ -139,18 +130,12 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.getUserByEmail(email);
+  async validateUser(username: string, password: string): Promise<User | null> {
+    const user = await this.getUserByUsername(username);
     if (!user) return null;
     
     const isValid = await bcrypt.compare(password, user.password);
     return isValid ? user : null;
-  }
-
-  private calculateProfileCompleteness(user: Partial<User>): number {
-    const fields = ['firstName', 'lastName', 'dateOfBirth', 'gender', 'country', 'zipCode'];
-    const completedFields = fields.filter(field => user[field as keyof User]).length;
-    return Math.round((completedFields / fields.length) * 100);
   }
 
   async getSurveys(): Promise<Survey[]> {
